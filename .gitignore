@@ -1,0 +1,8 @@
+# Local & Temporary Files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+node_modules/
+dist/
+build/

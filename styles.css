@@ -1,0 +1,551 @@
+/* ==========================================================================
+   Animated Login Form — TikTok Replicant (Settigation Form)
+   Colors:
+     - Primary Canvas:   #c95b02 (Exact warm amber-orange from video)
+     - Typography/Title: #012031 (Deep midnight navy)
+     - Form Inputs:      #ffffff with rgba(1, 32, 49, 0.16) border
+     - Action Button:    #000000 with #ffffff text
+     - Accent/Success:   #10b981 (Emerald green)
+     - Error/Shake:      #ef4444 (Crimson red)
+   ========================================================================== */
+
+:root {
+  --bg-color: #c95b02;
+  --text-navy: #012031;
+  --text-muted: #8c9ba5;
+  --text-disclaimer: rgba(1, 32, 49, 0.75);
+  --input-bg: #ffffff;
+  --input-border: rgba(1, 32, 49, 0.16);
+  --input-focus: #012031;
+  --btn-bg: #000000;
+  --btn-text: #ffffff;
+  --success: #10b981;
+  --error: #ef4444;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --stage-width: 576px;
+  --stage-height: 520px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  font-family: var(--font-family);
+  color: var(--text-navy);
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Page Outer Wrapper */
+.page-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 12px;
+  position: relative;
+}
+
+/* Floating Controls (Top Right) */
+.top-controls {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100;
+}
+
+.ctrl-btn {
+  background: rgba(1, 32, 49, 0.22);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.ctrl-btn:hover {
+  background: rgba(1, 32, 49, 0.4);
+  transform: translateY(-1px);
+}
+
+.ctrl-btn:active {
+  transform: translateY(0);
+}
+
+.ctrl-btn.active {
+  background: var(--text-navy);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Scalable Stage Viewport */
+.stage-scaler {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.stage {
+  position: relative;
+  width: var(--stage-width);
+  height: var(--stage-height);
+  background-color: var(--bg-color);
+  background-image: url('stage_clean_base.jpg');
+  background-size: var(--stage-width) var(--stage-height);
+  background-repeat: no-repeat;
+  overflow: hidden;
+  user-select: none;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+}
+
+/* Video Layer (Hidden by default; ONLY visible during Replay Push) */
+.video-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--stage-width);
+  height: 1024px;
+  pointer-events: none;
+  z-index: 2;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.video-layer.playing {
+  display: block !important;
+  opacity: 1 !important;
+}
+
+.video-layer video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: fill;
+}
+
+/* Top Header Title: Single, crisp, organized */
+.page-title {
+  position: absolute;
+  top: 76px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-navy);
+  letter-spacing: -0.4px;
+  z-index: 5;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.page-title.hidden-during-video {
+  opacity: 0 !important;
+}
+
+/* Dynamic Interactive Character Overlays */
+.character-interactive-layer {
+  position: absolute;
+  top: 215px;
+  left: 75px;
+  width: 105px;
+  height: 260px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* Speech Bubble */
+.speech-bubble {
+  position: absolute;
+  bottom: 270px;
+  left: 35px;
+  background: #ffffff;
+  color: var(--text-navy);
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 30;
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 28px;
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+
+.speech-bubble.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Privacy Blindfold Reaction Badge */
+.character-privacy-reaction {
+  position: absolute;
+  top: 24px;
+  left: 12px;
+  background: rgba(1, 32, 49, 0.94);
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: all 0.25s ease;
+  pointer-events: none;
+  z-index: 25;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.character-privacy-reaction.show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Fully Organized Interactive Form Overlay */
+.interactive-form-overlay {
+  position: absolute;
+  top: 226px;
+  left: 180px;
+  width: 270px;
+  background-color: var(--bg-color); /* Exact opaque match to prevent any bleed-through */
+  z-index: 10;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.25s ease;
+}
+
+.interactive-form-overlay.hidden-during-video {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Welcome Back Heading */
+.form-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-navy);
+  margin-bottom: 12px;
+  letter-spacing: -0.2px;
+}
+
+/* Field Group */
+.form-group {
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-navy);
+  margin-bottom: 4px;
+}
+
+.form-label span.req {
+  color: var(--text-navy);
+}
+
+.input-container {
+  position: relative;
+  width: 100%;
+}
+
+.input-icon-left {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: #8c9ba5;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-field {
+  width: 100%;
+  height: 30px;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-navy);
+  padding: 0 8px 0 28px;
+  outline: none;
+  transition: all 0.18s ease;
+}
+
+.input-field.no-icon {
+  padding-left: 9px;
+  padding-right: 28px;
+}
+
+.input-field::placeholder {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.input-field:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 2px rgba(1, 32, 49, 0.2);
+}
+
+.input-field.error {
+  border-color: var(--error);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+  animation: fieldShake 0.4s ease;
+}
+
+/* Password Visibility Toggle */
+.toggle-pwd-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #8c9ba5;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.toggle-pwd-btn:hover {
+  color: var(--text-navy);
+}
+
+/* Submit Button: Log In */
+.submit-btn {
+  width: 100%;
+  height: 32px;
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  transition: all 0.18s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.submit-btn:hover {
+  background-color: #171717;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+
+.submit-btn.loading {
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.submit-btn.success {
+  background-color: var(--success);
+}
+
+/* Spinner */
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+
+.submit-btn.loading .btn-text {
+  display: none;
+}
+.submit-btn.loading .btn-spinner {
+  display: inline-block;
+}
+
+/* Disclaimer & Security Notice (Neat, clean 2-line layout) */
+.disclaimer-text {
+  font-size: 9.5px;
+  color: var(--text-disclaimer);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.disclaimer-link {
+  color: var(--text-disclaimer);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.disclaimer-link:hover {
+  color: var(--text-navy);
+}
+
+/* Powered by Visme Forms Badge (Sleek single-line pill, no wrapping) */
+.powered-badge {
+  position: absolute;
+  top: 450px;
+  left: 350px;
+  width: auto;
+  white-space: nowrap;
+  padding: 3px 9px;
+  background: #ffffff;
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 10;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.powered-badge.hidden-during-video {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.powered-badge:hover {
+  color: var(--text-navy);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Confetti Canvas */
+#confettiCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* Shake Animation */
+@keyframes fieldShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Color Palette Dock */
+.palette-dock {
+  margin-top: 18px;
+  background: rgba(1, 32, 49, 0.14);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.palette-swatches {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.swatch-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Scaling for smaller screens */
+@media (max-width: 620px) {
+  .stage-scaler {
+    transform: scale(calc((100vw - 24px) / 576));
+    transform-origin: top center;
+    margin-bottom: calc((520px * (1 - ((100vw - 24px) / 576))) * -1);
+  }
+
+  .top-controls {
+    top: 10px;
+    right: 10px;
+    gap: 6px;
+  }
+
+  .ctrl-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
