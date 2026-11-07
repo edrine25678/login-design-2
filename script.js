@@ -425,6 +425,29 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(renderConfetti);
   }
 
-  // Initial presentation is clean resting state (Zero duplication)
-  settleIntoForm();
+  // Unlock Web Audio API on first user interaction anywhere
+  const unlockAudio = () => {
+    getAudioContext();
+    document.removeEventListener('pointerdown', unlockAudio);
+    document.removeEventListener('keydown', unlockAudio);
+  };
+  document.addEventListener('pointerdown', unlockAudio, { once: true });
+  document.addEventListener('keydown', unlockAudio, { once: true });
+
+  // Start with the dynamic walk & push animation (clean fallback if restricted)
+  if (video.readyState >= 2) {
+    playIntroAnimation();
+  } else {
+    const startOnReady = () => {
+      video.removeEventListener('canplay', startOnReady);
+      playIntroAnimation();
+    };
+    video.addEventListener('canplay', startOnReady);
+    // Safety fallback: if video takes too long to load, settle into form
+    setTimeout(() => {
+      if (!isVideoPlaying) {
+        settleIntoForm();
+      }
+    }, 1800);
+  }
 });

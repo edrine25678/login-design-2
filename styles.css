@@ -166,6 +166,7 @@ html, body {
 
 .page-title.hidden-during-video {
   opacity: 0 !important;
+  visibility: hidden !important;
 }
 
 /* Dynamic Interactive Character Overlays */
@@ -256,6 +257,7 @@ html, body {
 
 .interactive-form-overlay.hidden-during-video {
   opacity: 0 !important;
+  visibility: hidden !important;
   pointer-events: none !important;
 }
 
@@ -464,6 +466,7 @@ html, body {
 
 .powered-badge.hidden-during-video {
   opacity: 0 !important;
+  visibility: hidden !important;
   pointer-events: none !important;
 }
 
